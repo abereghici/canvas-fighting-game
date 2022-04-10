@@ -1,1 +1,1 @@
-# Fight Game (written in Canvas)
+# Fighting Game (written in Canvas)
