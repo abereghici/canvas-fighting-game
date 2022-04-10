@@ -1,1 +1,1 @@
-# canvas-fight-game
+# Fight Game (written in Canvas)
