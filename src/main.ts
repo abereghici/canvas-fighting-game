@@ -1,102 +1,19 @@
 import './style.css'
 
-const canvas = document.querySelector<HTMLCanvasElement>('canvas')!
-const context = canvas.getContext('2d')!
+import {canvas, context} from './canvas'
+import Sprite from './sprite'
+import Fighter from './fighter'
+import {decreaseTimer, determineWinner, rectangularCollision} from './utils'
 
-canvas.width = 1024
-canvas.height = 576
+const background = new Sprite({
+  position: {
+    x: 0,
+    y: 0,
+  },
+  imageSrc: './img/background.png',
+})
 
-const gravity = 0.5
-
-context.fillRect(0, 0, canvas.width, canvas.height)
-
-type Point = {x: number; y: number}
-class Sprite {
-  position: Point
-  velocity: Point
-  width: number
-  height: number
-  lastKey: string
-  color: string
-  attackBox: {
-    position: Point
-    offset: Point
-    width: number
-    height: number
-  }
-  isAttacking: boolean
-  health: number
-
-  constructor({
-    position,
-    velocity,
-    color,
-    offset,
-  }: {
-    position: Point
-    velocity: Point
-    offset: Point
-    color: string
-  }) {
-    this.position = position
-    this.velocity = velocity
-    this.width = 50
-    this.height = 150
-    this.lastKey = ''
-    this.attackBox = {
-      position: {
-        x: this.position.x,
-        y: this.position.y,
-      },
-      width: 100,
-      height: 50,
-      offset,
-    }
-    this.color = color
-    this.isAttacking = false
-    this.health = 100
-  }
-
-  draw() {
-    this.attackBox.position.x = this.position.x + this.attackBox.offset.x
-    this.attackBox.position.y = this.position.y
-    context.fillStyle = this.color
-    context.fillRect(this.position.x, this.position.y, this.width, this.height)
-
-    // attack box
-
-    if (this.isAttacking) {
-      context.fillStyle = 'green'
-      context.fillRect(
-        this.attackBox.position.x,
-        this.attackBox.position.y,
-        this.attackBox.width,
-        this.attackBox.height,
-      )
-    }
-  }
-
-  update() {
-    this.draw()
-    this.position.x += this.velocity.x
-    this.position.y += this.velocity.y
-
-    if (this.position.y + this.height + this.velocity.y >= canvas.height) {
-      this.velocity.y = 0
-    } else {
-      this.velocity.y += gravity
-    }
-  }
-
-  attack() {
-    this.isAttacking = true
-    setTimeout(() => {
-      this.isAttacking = false
-    }, 100)
-  }
-}
-
-const player = new Sprite({
+const player = new Fighter({
   color: 'red',
   position: {
     x: 0,
@@ -112,7 +29,7 @@ const player = new Sprite({
   },
 })
 
-const enemy = new Sprite({
+const enemy = new Fighter({
   color: 'blue',
   position: {
     x: canvas.getBoundingClientRect().width - player.width,
@@ -149,65 +66,13 @@ const keys = {
   },
 }
 
-function rectangularCollision({
-  rectangle1,
-  rectangle2,
-}: {
-  rectangle1: Sprite
-  rectangle2: Sprite
-}) {
-  return (
-    rectangle1.attackBox.position.x + rectangle1.attackBox.width >=
-      rectangle2.position.x &&
-    rectangle1.attackBox.position.x <=
-      rectangle2.position.x + rectangle2.width &&
-    rectangle1.attackBox.position.y + rectangle1.attackBox.height >=
-      rectangle2.position.y &&
-    rectangle1.attackBox.position.y <= rectangle2.position.y + rectangle2.height
-  )
-}
-function determineWinner({
-  player,
-  enemy,
-  timerId,
-}: {
-  player: Sprite
-  enemy: Sprite
-  timerId: number | undefined
-}) {
-  clearTimeout(timerId)
-  const gameStatus = document.querySelector('#gameStatus') as HTMLDivElement
-  gameStatus.style.display = 'flex'
-
-  if (player.health === enemy.health) {
-    gameStatus.innerHTML = 'Tie'
-  } else if (player.health > enemy.health) {
-    gameStatus.innerHTML = 'Player 1 Wins'
-  } else {
-    gameStatus.innerHTML = 'Player 2 Wins'
-  }
-}
-
-let timer = 60
-let timerId: number | undefined
-function decreaseTimer() {
-  if (timer > 0) {
-    timerId = setTimeout(decreaseTimer, 1000)
-    timer--
-    document.querySelector('#timer')!.innerHTML = `${timer}`
-  }
-
-  if (timer === 0) {
-    determineWinner({player, enemy, timerId})
-  }
-}
-
-decreaseTimer()
+decreaseTimer({player, enemy})
 
 function animate() {
   window.requestAnimationFrame(animate)
   context.fillStyle = 'black'
   context.fillRect(0, 0, canvas.width, canvas.height)
+  background.update()
   player.update()
   enemy.update()
 
@@ -259,7 +124,7 @@ function animate() {
 
   // end game based on health
   if (enemy.health <= 0 || player.health <= 0) {
-    determineWinner({player, enemy, timerId})
+    determineWinner({player, enemy})
   }
 }
 
