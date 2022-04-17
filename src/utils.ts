@@ -50,7 +50,7 @@ export function decreaseTimer({
   enemy: Fighter
 }) {
   if (timer > 0) {
-    timerId = setTimeout(decreaseTimer, 1000)
+    timerId = setTimeout(() => decreaseTimer({player, enemy}), 1000)
     timer--
     document.querySelector('#timer')!.innerHTML = `${timer}`
   }

@@ -13,6 +13,16 @@ const background = new Sprite({
   imageSrc: './img/background.png',
 })
 
+const shop = new Sprite({
+  position: {
+    x: 600,
+    y: 128,
+  },
+  imageSrc: './img/shop.png',
+  scale: 2.75,
+  framesMax: 6,
+})
+
 const player = new Fighter({
   color: 'red',
   position: {
@@ -32,7 +42,7 @@ const player = new Fighter({
 const enemy = new Fighter({
   color: 'blue',
   position: {
-    x: canvas.getBoundingClientRect().width - player.width,
+    x: 400,
     y: 100,
   },
   velocity: {
@@ -66,13 +76,12 @@ const keys = {
   },
 }
 
-decreaseTimer({player, enemy})
-
 function animate() {
   window.requestAnimationFrame(animate)
   context.fillStyle = 'black'
   context.fillRect(0, 0, canvas.width, canvas.height)
   background.update()
+  shop.update()
   player.update()
   enemy.update()
 
@@ -127,6 +136,8 @@ function animate() {
     determineWinner({player, enemy})
   }
 }
+
+decreaseTimer({player, enemy})
 
 animate()
 
