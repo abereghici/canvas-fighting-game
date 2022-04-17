@@ -25,6 +25,7 @@ class Sprite {
     height: number
   }
   isAttacking: boolean
+  health: number
 
   constructor({
     position,
@@ -53,6 +54,7 @@ class Sprite {
     }
     this.color = color
     this.isAttacking = false
+    this.health = 100
   }
 
   draw() {
@@ -113,7 +115,7 @@ const player = new Sprite({
 const enemy = new Sprite({
   color: 'blue',
   position: {
-    x: 400,
+    x: canvas.getBoundingClientRect().width - player.width,
     y: 100,
   },
   velocity: {
@@ -197,6 +199,10 @@ function animate() {
     player.isAttacking
   ) {
     player.isAttacking = false
+
+    const enemyHealth = document.querySelector('#enemyHealth') as HTMLDivElement
+    enemy.health -= 20
+    enemyHealth.style.width = `${enemy.health}%`
   }
 
   if (
@@ -207,6 +213,11 @@ function animate() {
     enemy.isAttacking
   ) {
     enemy.isAttacking = false
+    const playerHealth = document.querySelector(
+      '#playerHealth',
+    ) as HTMLDivElement
+    player.health -= 20
+    playerHealth.style.width = `${player.health}%`
   }
 }
 

@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 html {
   background-color: grey;
   width: 100vw;
@@ -5,4 +9,45 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
+}
+
+body {
+  position: relative;
+}
+
+header {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 24px 0;
+}
+
+.playerHealthBar {
+  background-color: yellow;
+  height: 30px;
+  width: 100%;
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.enemyHealthBar {
+  background-color: yellow;
+  height: 30px;
+  width: 100%;
+}
+
+#playerHealth,
+#enemyHealth {
+  background-color: blue;
+  width: 100%;
+  height: 30px;
+}
+
+.timer {
+  background-color: red;
+  height: 100px;
+  width: 100px;
+  flex-shrink: 0;
 }
