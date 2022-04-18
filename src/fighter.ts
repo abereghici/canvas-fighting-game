@@ -1,7 +1,7 @@
 import {GRAVITY, GROUND_HEIGHT} from './config'
 import {Point} from './types'
 import Sprite from './sprite'
-import {canvas, context} from './canvas'
+import {canvas} from './canvas'
 
 type SpriteOption = {
   imageSrc: string
@@ -15,7 +15,9 @@ type SpriteOptions = {
   jump: SpriteOption
   fall: SpriteOption
   attack1: SpriteOption
+  takeHit: SpriteOption
 }
+
 type AttackBox = {
   position: Point
   offset: Point
@@ -129,10 +131,23 @@ export default class Fighter extends Sprite {
     this.isAttacking = true
   }
 
+  takeHit() {
+    this.switchSprite('takeHit')
+    this.health -= 10
+  }
+
   switchSprite(sprite: keyof SpriteOptions) {
+    // overriding all other animations with the attack animation
     if (
       this.image === this.sprites.attack1.image &&
       this.frameCurrent < this.sprites.attack1.framesMax - 1
+    ) {
+      return
+    }
+    // overriding all other animations with the take hit animation
+    if (
+      this.image === this.sprites.takeHit.image &&
+      this.frameCurrent < this.sprites.takeHit.framesMax - 1
     ) {
       return
     }
@@ -163,6 +178,13 @@ export default class Fighter extends Sprite {
         if (this.image !== this.sprites.attack1.image) {
           this.image = this.sprites.attack1.image!
           this.framesMax = this.sprites.attack1.framesMax
+          this.frameCurrent = 0
+        }
+        break
+      case 'takeHit':
+        if (this.image !== this.sprites.takeHit.image) {
+          this.image = this.sprites.takeHit.image!
+          this.framesMax = this.sprites.takeHit.framesMax
           this.frameCurrent = 0
         }
         break
