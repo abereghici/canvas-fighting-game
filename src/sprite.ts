@@ -11,28 +11,38 @@ export default class Sprite {
   framesMax: number
   framesElapsed: number
   framesHold: number
+  offset: Point
 
   constructor({
     position,
     imageSrc,
     scale = 1,
+    offset = {x: 0, y: 0},
     framesMax = 1,
+    framesCurrent = 0,
+    framesElapsed = 0,
+    framesHold = 0,
   }: {
     position: Point
     imageSrc: string
+    offset?: Point
     scale?: number
+    framesCurrent?: number
     framesMax?: number
+    framesElapsed?: number
+    framesHold?: number
   }) {
     this.position = position
     this.width = 50
     this.height = 150
     this.scale = scale
     this.framesMax = framesMax
-    this.frameCurrent = 0
-    this.framesElapsed = 0
-    this.framesHold = 5
+    this.frameCurrent = framesCurrent
+    this.framesElapsed = framesElapsed
+    this.framesHold = framesHold
     this.image = new Image()
     this.image.src = imageSrc
+    this.offset = offset
   }
 
   draw() {
@@ -42,16 +52,14 @@ export default class Sprite {
       0,
       this.image.width / this.framesMax,
       this.image.height,
-      this.position.x,
-      this.position.y,
+      this.position.x - this.offset.x,
+      this.position.y - this.offset.y,
       (this.image.width / this.framesMax) * this.scale,
       this.image.height * this.scale,
     )
   }
 
-  update() {
-    this.draw()
-
+  animateFrames() {
     this.framesElapsed++
 
     if (this.framesElapsed % this.framesHold === 0) {
@@ -61,5 +69,10 @@ export default class Sprite {
         this.frameCurrent = 0
       }
     }
+  }
+
+  update() {
+    this.draw()
+    this.animateFrames()
   }
 }
