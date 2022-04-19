@@ -163,6 +163,8 @@ function animate() {
   context.fillRect(0, 0, canvas.width, canvas.height)
   background.update()
   shop.update()
+  context.fillStyle = 'rgba(255,255,255,0.15)'
+  context.fillRect(0, 0, canvas.width, canvas.height)
   player.update()
   enemy.update()
 
