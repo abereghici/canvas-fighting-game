@@ -1,81 +1,45 @@
-import {GRAVITY, GROUND_HEIGHT} from './config'
-import {Point} from './types'
+import Box from './box'
 import Sprite from './sprite'
-import {canvas} from './canvas'
+import FrameManager from './frame-manager'
+import FighterSpriteSheets, {type FightActions} from './fighter-sprite-sheets'
+import {Point} from './types'
+import GameSettings from './game-settings'
+import KeyboardManager from './keyboard-manager'
 
-type SpriteOption = {
-  imageSrc: string
-  framesMax: number
-  image?: HTMLImageElement
-}
-
-type SpriteOptions = {
-  idle: SpriteOption
-  run: SpriteOption
-  jump: SpriteOption
-  fall: SpriteOption
-  attack1: SpriteOption
-  takeHit: SpriteOption
-  death: SpriteOption
-}
-
-type AttackBox = {
+type ConstructorProps = {
   position: Point
-  offset: Point
-  width: number
-  height: number
-}
-export default class Fighter extends Sprite {
   velocity: Point
-  lastKey: string
-  attackBox: AttackBox
-  isAttacking: boolean
-  health: number
-  sprites: SpriteOptions
-  dead: boolean = false
+  offset: Point
+  scale: number
+  keyboardManager: KeyboardManager
+  frameManager: FrameManager
+  sprites: FighterSpriteSheets
+  attackBox: Box
+  onAttack?: () => void
+}
 
-  constructor({
-    position,
-    velocity,
-    offset,
-    imageSrc,
-    scale = 1,
-    framesMax = 1,
-    framesCurrent = 0,
-    framesElapsed = 0,
-    framesHold = 5,
-    sprites,
-    attackBox = {offset: {x: 0, y: 0}, width: 0, height: 0},
-  }: {
-    position: Point
-    velocity: Point
-    offset: Point
-    imageSrc: string
-    scale?: number
-    framesCurrent?: number
-    framesMax?: number
-    framesElapsed?: number
-    framesHold?: number
-    sprites: SpriteOptions
-    attackBox?: {
-      offset: Point
-      width: number
-      height: number
-    }
-  }) {
+export default class Fighter extends Sprite {
+  private velocity: Point
+  private attackBox: Box
+  private sprites: FighterSpriteSheets
+  private keyboardManager: KeyboardManager
+  private health: number = 100
+  private isDead: boolean = false
+  private isAttacking: boolean = false
+  private canJump: boolean = true
+
+  constructor(props: ConstructorProps) {
     super({
-      position,
-      imageSrc,
-      scale,
-      framesMax,
-      framesCurrent,
-      framesElapsed,
-      framesHold,
-      offset,
+      ...props,
+      width: 50,
+      height: 150,
     })
 
+    const {sprites, attackBox, velocity, keyboardManager} = props
+    this.keyboardManager = keyboardManager
+
     this.velocity = velocity
-    this.lastKey = ''
+
     this.attackBox = {
       position: {
         x: this.position.x,
@@ -85,23 +49,16 @@ export default class Fighter extends Sprite {
       height: attackBox.height,
       offset: attackBox.offset,
     }
-    this.isAttacking = false
-    this.health = 100
     this.sprites = sprites
 
-    for (const sprite in this.sprites) {
-      const currentSprite = this.sprites[sprite as keyof SpriteOptions]
-      const img = new Image()
-      img.src = currentSprite.imageSrc
-      currentSprite.image = img
-      this.framesMax = currentSprite.framesMax
-    }
+    this.keyboardManager.onJump = () => this.jump()
+    this.keyboardManager.onAttack = () => this.startAttack()
   }
 
-  update() {
-    this.draw()
+  update(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) {
+    this.draw(context)
 
-    if (!this.dead) {
+    if (!this.isDead) {
       this.animateFrames()
     }
 
@@ -122,103 +79,157 @@ export default class Fighter extends Sprite {
     // gravity function
     if (
       this.position.y + this.height + this.velocity.y >=
-      canvas.height - GROUND_HEIGHT
+      canvas.height - GameSettings.groundHeight
     ) {
       this.velocity.y = 0
-      this.position.y = 330
+      this.position.y = GameSettings.playerInitialFallPosition
+      this.canJump = true
     } else {
-      this.velocity.y += GRAVITY
+      this.velocity.y += GameSettings.gravity
+      this.canJump = false
+    }
+
+    this.velocity.x = 0
+
+    if (this.shouldMoveLeft()) {
+      this.moveLeft()
+    } else if (this.shouldMoveRight()) {
+      this.moveRight()
+    } else {
+      this.setIdle()
+    }
+
+    if (this.velocity.y < 0) {
+      this.switchSprite('Jump')
+    } else if (this.velocity.y > 0) {
+      this.switchSprite('Fall')
     }
   }
 
-  attack() {
-    this.switchSprite('attack1')
-    this.isAttacking = true
+  getHealth() {
+    return this.health
+  }
+
+  setIdle() {
+    this.velocity.x = 0
+    this.switchSprite('Idle')
+  }
+
+  shouldMoveLeft = () => {
+    if (this.isDead) {
+      return false
+    }
+
+    return (
+      this.keyboardManager.getKey('MoveLeft')?.pressed &&
+      this.keyboardManager.lastKey === 'MoveLeft'
+    )
+  }
+
+  moveLeft() {
+    if (this.isDead) {
+      return
+    }
+
+    const newPosition = this.position.x - GameSettings.playerRunSpeed
+
+    if (newPosition < 0) {
+      return
+    }
+
+    this.velocity.x = -GameSettings.playerRunSpeed
+    this.switchSprite('Run')
+  }
+
+  shouldMoveRight = () => {
+    if (this.isDead) {
+      return false
+    }
+
+    return (
+      this.keyboardManager.getKey('MoveRight')?.pressed &&
+      this.keyboardManager.lastKey === 'MoveRight'
+    )
+  }
+
+  moveRight() {
+    const newPosition =
+      this.position.x + GameSettings.playerRunSpeed + this.width
+    if (newPosition > GameSettings.screenWidth) {
+      return
+    }
+
+    this.velocity.x = GameSettings.playerRunSpeed
+    this.switchSprite('Run')
+  }
+
+  startAttack() {
+    if (!this.isDead) {
+      this.switchSprite('Attack1')
+      this.isAttacking = true
+    }
+  }
+
+  finishAttack() {
+    this.isAttacking = false
+  }
+
+  isAttackInProgress() {
+    return (
+      this.isAttacking &&
+      this.frameManager.current === this.sprites.attackFrameNumber
+    )
+  }
+
+  jump() {
+    if (!this.isDead && this.canJump) {
+      this.velocity.y -= GameSettings.playerJumpHeight
+    }
   }
 
   takeHit() {
-    this.health -= 10
+    this.health -= GameSettings.playerDamage
 
     if (this.health <= 0) {
-      this.switchSprite('death')
+      this.switchSprite('Death')
     } else {
-      this.switchSprite('takeHit')
+      this.switchSprite('TakeHit')
     }
   }
 
-  switchSprite(sprite: keyof SpriteOptions) {
-    if (this.image === this.sprites.death.image) {
-      if (this.frameCurrent === this.sprites.death.framesMax - 1) {
-        this.dead = true
+  switchSprite(action: FightActions) {
+    let sprite = this.sprites.get(action)
+
+    const deadSprite = this.sprites.get('Death')
+    if (this.image === deadSprite?.image) {
+      if (this.frameManager.current === deadSprite.maxFrames - 1) {
+        this.isDead = true
       }
       return
     }
 
     // overriding all other animations with the attack animation
+    const attackSprite = this.sprites.get('Attack1')
     if (
-      this.image === this.sprites.attack1.image &&
-      this.frameCurrent < this.sprites.attack1.framesMax - 1
-    ) {
-      return
-    }
-    // overriding all other animations with the take hit animation
-    if (
-      this.image === this.sprites.takeHit.image &&
-      this.frameCurrent < this.sprites.takeHit.framesMax - 1
+      this.image === attackSprite?.image &&
+      this.frameManager.current < attackSprite.maxFrames - 1
     ) {
       return
     }
 
-    switch (sprite) {
-      case 'run':
-        if (this.image !== this.sprites.run.image) {
-          this.image = this.sprites.run.image!
-          this.framesMax = this.sprites.run.framesMax
-          this.frameCurrent = 0
-        }
-        break
-      case 'jump':
-        if (this.image !== this.sprites.jump.image) {
-          this.image = this.sprites.jump.image!
-          this.framesMax = this.sprites.jump.framesMax
-          this.frameCurrent = 0
-        }
-        break
-      case 'fall':
-        if (this.image !== this.sprites.fall.image) {
-          this.image = this.sprites.fall.image!
-          this.framesMax = this.sprites.fall.framesMax
-          this.frameCurrent = 0
-        }
-        break
-      case 'attack1':
-        if (this.image !== this.sprites.attack1.image) {
-          this.image = this.sprites.attack1.image!
-          this.framesMax = this.sprites.attack1.framesMax
-          this.frameCurrent = 0
-        }
-        break
-      case 'takeHit':
-        if (this.image !== this.sprites.takeHit.image) {
-          this.image = this.sprites.takeHit.image!
-          this.framesMax = this.sprites.takeHit.framesMax
-          this.frameCurrent = 0
-        }
-        break
-      case 'death':
-        if (this.image !== this.sprites.death.image) {
-          this.image = this.sprites.death.image!
-          this.framesMax = this.sprites.death.framesMax
-          this.frameCurrent = 0
-        }
-        break
-      default:
-        if (this.image !== this.sprites.idle.image) {
-          this.image = this.sprites.idle.image!
-          this.framesMax = this.sprites.idle.framesMax
-          this.frameCurrent = 0
-        }
-        break
+    // overriding all other animations with the take hit animation
+    const takeHitSprite = this.sprites.get('TakeHit')
+    if (
+      this.image === takeHitSprite?.image &&
+      this.frameManager.current < takeHitSprite.maxFrames - 1
+    ) {
+      return
+    }
+
+    if (sprite && this.image != sprite.image) {
+      this.image = sprite.image
+      this.frameManager.max = sprite.maxFrames
+      this.frameManager.current = 0
     }
   }
 }

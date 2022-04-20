@@ -1,78 +1,56 @@
-import {context} from './canvas'
-import {type Point} from './types'
+import Box, {type ConstructorProps as BoxConstructorProps} from './box'
+import FrameManager from './frame-manager'
 
-export default class Sprite {
-  position: Point
-  width: number
-  height: number
+export type ConstructorProps = BoxConstructorProps & {
+  imageSrc?: string
+  scale?: number
+  frameManager?: FrameManager
+}
+
+export default class Sprite extends Box {
   image: HTMLImageElement
-  scale: number
-  frameCurrent: number
-  framesMax: number
-  framesElapsed: number
-  framesHold: number
-  offset: Point
+  frameManager: FrameManager = new FrameManager()
+  scale: number = 1
 
-  constructor({
-    position,
-    imageSrc,
-    scale = 1,
-    offset = {x: 0, y: 0},
-    framesMax = 1,
-    framesCurrent = 0,
-    framesElapsed = 0,
-    framesHold = 0,
-  }: {
-    position: Point
-    imageSrc: string
-    offset?: Point
-    scale?: number
-    framesCurrent?: number
-    framesMax?: number
-    framesElapsed?: number
-    framesHold?: number
-  }) {
-    this.position = position
-    this.width = 50
-    this.height = 150
-    this.scale = scale
-    this.framesMax = framesMax
-    this.frameCurrent = framesCurrent
-    this.framesElapsed = framesElapsed
-    this.framesHold = framesHold
+  constructor(props: ConstructorProps) {
+    super(props)
+
+    const {imageSrc, scale, frameManager} = props
+
+    if (scale) {
+      this.scale = scale
+    }
+
+    if (frameManager) {
+      this.frameManager = frameManager
+    }
+
     this.image = new Image()
-    this.image.src = imageSrc
-    this.offset = offset
+    if (imageSrc) {
+      this.image.src = imageSrc
+    }
   }
 
-  draw() {
+  draw(context: CanvasRenderingContext2D) {
     context.drawImage(
       this.image,
-      this.frameCurrent * (this.image.width / this.framesMax),
+      this.frameManager.current * (this.image.width / this.frameManager.max),
       0,
-      this.image.width / this.framesMax,
+      this.image.width / this.frameManager.max,
       this.image.height,
       this.position.x - this.offset.x,
       this.position.y - this.offset.y,
-      (this.image.width / this.framesMax) * this.scale,
+      (this.image.width / this.frameManager.max) * this.scale,
       this.image.height * this.scale,
     )
   }
 
   animateFrames() {
-    this.framesElapsed++
-
-    if (this.framesElapsed % this.framesHold === 0) {
-      if (this.frameCurrent < this.framesMax - 1) {
-        this.frameCurrent += 1
-      } else {
-        this.frameCurrent = 0
-      }
-    }
+    this.frameManager.animate()
   }
 
-  update() {
-    this.draw()
+  update(_: HTMLCanvasElement, context: CanvasRenderingContext2D) {
+    this.draw(context)
     this.animateFrames()
   }
 }
