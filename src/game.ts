@@ -78,7 +78,14 @@ export default class Game {
     this.player.update(this.canvas, this.context)
     this.enemy.update(this.canvas, this.context)
 
-    if (this.hasFightersCollided() && this.player.isAttackInProgress()) {
+    if (this.timer.isFinished()) {
+      return
+    }
+
+    if (
+      this.hasFightersCollided(this.player, this.enemy) &&
+      this.player.isAttackInProgress()
+    ) {
       this.player.finishAttack()
       this.enemy.takeHit()
       this.updateHealth(this.enemy.getHealth(), '#enemyHealth')
@@ -89,7 +96,10 @@ export default class Game {
       this.player.finishAttack()
     }
 
-    if (this.hasFightersCollided() && this.enemy.isAttackInProgress()) {
+    if (
+      this.hasFightersCollided(this.enemy, this.player) &&
+      this.enemy.isAttackInProgress()
+    ) {
       this.enemy.finishAttack()
       this.player.takeHit()
       this.updateHealth(this.player.getHealth(), '#playerHealth')
@@ -107,10 +117,10 @@ export default class Game {
     }
   }
 
-  hasFightersCollided = () => {
+  hasFightersCollided = (fighter1: Fighter, fighter2: Fighter) => {
     return Collision.detect({
-      fighter1: this.player,
-      fighter2: this.enemy,
+      fighter1,
+      fighter2,
     })
   }
 

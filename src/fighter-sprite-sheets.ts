@@ -1,6 +1,7 @@
 import SpriteSheet, {
   type ConstructorProps as SpriteSheetConstructorProps,
 } from './sprite-sheet'
+import {Direction} from './types'
 
 export type FightActions =
   | 'Idle'
@@ -14,17 +15,22 @@ export type FightActions =
 export default class FighterSpriteSheets {
   private sheets: Map<FightActions, SpriteSheet> = new Map()
   private imagesPath: string = ''
+  direction: Direction
   attackFrameNumber: number
 
-  constructor(imagesPath: string, attackFrameNumber: number) {
+  constructor(
+    imagesPath: string,
+    attackFrameNumber: number,
+    direction: Direction,
+  ) {
     this.imagesPath = imagesPath
     this.attackFrameNumber = attackFrameNumber
+    this.direction = direction
   }
 
   add(action: FightActions, sheet: Partial<SpriteSheetConstructorProps>) {
     let spriteSheet = new SpriteSheet({
       maxFrames: sheet.maxFrames ?? 1,
-      imageSrc: sheet.imageSrc ?? `${this.imagesPath}/${action}.png`,
     })
 
     this.sheets.set(action, spriteSheet)
@@ -32,6 +38,10 @@ export default class FighterSpriteSheets {
   }
 
   get(action: FightActions): SpriteSheet | undefined {
-    return this.sheets.get(action)
+    const sheet = this.sheets.get(action)
+    if (sheet) {
+      sheet.image.src = `${this.imagesPath}/${this.direction}/${action}.png`
+    }
+    return sheet
   }
 }

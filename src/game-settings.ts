@@ -1,4 +1,6 @@
 export default class GameSettings {
+  static debug = false
+
   static screenWidth = 1024
   static screenHeight = 576
 

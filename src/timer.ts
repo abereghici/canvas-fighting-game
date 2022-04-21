@@ -50,4 +50,8 @@ export default class Timer {
     clearTimeout(this.timerId)
     return this
   }
+
+  isFinished() {
+    return this.timer <= 0
+  }
 }

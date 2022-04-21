@@ -1,7 +1,9 @@
 import './style.css'
 
-import samuraiKenji from './fighters/samurai-kenji'
-import samuraiMack from './fighters/samurai-mack'
+import {createSamuraiKenji} from './fighters/samurai-kenji'
+import {createSamuraiMack} from './fighters/samurai-mack'
+import {createWizardAlatar} from './fighters/wizard-alatar'
+import {createWizardAlbus} from './fighters/wizard-albus'
 import FrameManager from './frame-manager'
 import GameBuilder from './game-builder'
 import Sprite from './sprite'
@@ -22,7 +24,7 @@ new GameBuilder()
       frameManager: new FrameManager({max: 6, hold: 5}),
     }),
   )
-  .setPlayer(samuraiMack)
-  .setEnemy(samuraiKenji)
+  .setPlayer(createWizardAlbus('Left'))
+  .setEnemy(createWizardAlatar('Right'))
   .build()
   .start()

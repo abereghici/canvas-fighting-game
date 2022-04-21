@@ -20,8 +20,8 @@ type ConstructorProps = {
 
 export default class Fighter extends Sprite {
   private velocity: Point
-  private attackBox: Box
-  private sprites: FighterSpriteSheets
+  attackBox: Box
+  sprites: FighterSpriteSheets
   private keyboardManager: KeyboardManager
   private health: number = 100
   private isDead: boolean = false
@@ -65,13 +65,28 @@ export default class Fighter extends Sprite {
     this.attackBox.position.x = this.position.x + this.attackBox.offset.x
     this.attackBox.position.y = this.position.y + this.attackBox.offset.y
 
-    // attack box : for debug only
-    // context.fillRect(
-    //   this.attackBox.position.x,
-    //   this.attackBox.position.y,
-    //   this.attackBox.width,
-    //   this.attackBox.height,
-    // )
+    if (this.sprites.direction === 'Right') {
+      this.attackBox.position.x =
+        this.position.x - this.attackBox.offset.x - this.width * 2
+    }
+
+    if (GameSettings.debug) {
+      // attack box
+      context.fillRect(
+        this.attackBox.position.x,
+        this.attackBox.position.y,
+        this.attackBox.width,
+        this.attackBox.height,
+      )
+
+      // fighter
+      context.fillRect(
+        this.position.x,
+        this.position.y,
+        this.width,
+        this.height,
+      )
+    }
 
     this.position.x += this.velocity.x
     this.position.y += this.velocity.y
@@ -138,6 +153,7 @@ export default class Fighter extends Sprite {
     }
 
     this.velocity.x = -GameSettings.playerRunSpeed
+    this.sprites.direction = 'Right'
     this.switchSprite('Run')
   }
 
@@ -160,6 +176,7 @@ export default class Fighter extends Sprite {
     }
 
     this.velocity.x = GameSettings.playerRunSpeed
+    this.sprites.direction = 'Left'
     this.switchSprite('Run')
   }
 

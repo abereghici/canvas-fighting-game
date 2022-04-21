@@ -5,12 +5,12 @@ import FrameManager from '../frame-manager'
 import KeyboardManager from '../keyboard-manager'
 import {Direction} from '../types'
 
-export const createSamuraiKenji = (direction: Direction) =>
+export const createWizardAlatar = (direction: Direction) =>
   new Fighter({
     scale: 2.5,
     position: direction === 'Right' ? {x: 400, y: 100} : {x: 0, y: 0},
     velocity: {x: 0, y: 0},
-    offset: {x: 215, y: 170},
+    offset: {x: 300, y: 265},
     frameManager: new FrameManager({max: 4}),
     attackBox: new Box({
       position: {x: 0, y: 0},
@@ -19,12 +19,12 @@ export const createSamuraiKenji = (direction: Direction) =>
       height: 50,
     }),
     sprites: new FighterSpriteSheets(
-      './assets/characters/samuraiKenji',
-      2,
+      './assets/characters/wizardAlatar',
+      4,
       direction,
     )
       .add('Idle', {
-        maxFrames: 4,
+        maxFrames: 8,
       })
       .add('Run', {
         maxFrames: 8,
@@ -36,7 +36,7 @@ export const createSamuraiKenji = (direction: Direction) =>
         maxFrames: 2,
       })
       .add('Attack1', {
-        maxFrames: 4,
+        maxFrames: 8,
       })
       .add('TakeHit', {
         maxFrames: 3,
@@ -57,5 +57,3 @@ export const createSamuraiKenji = (direction: Direction) =>
             .addKey('d', 'MoveRight')
             .addKey(' ', 'Attack'),
   })
-{
-}
