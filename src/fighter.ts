@@ -5,6 +5,7 @@ import FighterSpriteSheets, {type FightActions} from './fighter-sprite-sheets'
 import {Point} from './types'
 import GameSettings from './game-settings'
 import KeyboardManager from './keyboard-manager'
+import Sound from './sound'
 
 type ConstructorProps = {
   position: Point
@@ -27,6 +28,9 @@ export default class Fighter extends Sprite {
   private isDead: boolean = false
   private isAttacking: boolean = false
   private canJump: boolean = true
+  private attackSound: Sound
+  private jumpSound: Sound
+  private dieSound: Sound
 
   constructor(props: ConstructorProps) {
     super({
@@ -37,6 +41,27 @@ export default class Fighter extends Sprite {
 
     const {sprites, attackBox, velocity, keyboardManager} = props
     this.keyboardManager = keyboardManager
+    this.sprites = sprites
+
+    if (this.sprites.direction === 'Right') {
+      this.attackSound = new Sound('./assets/hit.wav', {
+        restartOnPlay: true,
+      })
+      this.jumpSound = new Sound('./assets/jump.mp3', {
+        restartOnPlay: true,
+      })
+    } else {
+      this.attackSound = new Sound('./assets/hit2.wav', {
+        restartOnPlay: true,
+      })
+      this.jumpSound = new Sound('./assets/jump2.mp3', {
+        restartOnPlay: true,
+      })
+    }
+
+    this.dieSound = new Sound('./assets/die.wav', {
+      volume: 0.4,
+    })
 
     this.velocity = velocity
 
@@ -49,7 +74,6 @@ export default class Fighter extends Sprite {
       height: attackBox.height,
       offset: attackBox.offset,
     }
-    this.sprites = sprites
 
     this.keyboardManager.onJump = () => this.jump()
     this.keyboardManager.onAttack = () => this.startAttack()
@@ -189,6 +213,7 @@ export default class Fighter extends Sprite {
 
   finishAttack() {
     this.isAttacking = false
+    this.attackSound.play()
   }
 
   isAttackInProgress() {
@@ -200,6 +225,7 @@ export default class Fighter extends Sprite {
 
   jump() {
     if (!this.isDead && this.canJump) {
+      this.jumpSound.play()
       this.velocity.y -= GameSettings.playerJumpHeight
     }
   }
@@ -209,6 +235,9 @@ export default class Fighter extends Sprite {
 
     if (this.health <= 0) {
       this.switchSprite('Death')
+      if (!this.isDead) {
+        this.dieSound.play()
+      }
     } else {
       this.switchSprite('TakeHit')
     }

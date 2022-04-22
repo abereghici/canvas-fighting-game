@@ -2,6 +2,7 @@ import Fighter from './fighter'
 import GameSettings from './game-settings'
 import Sprite from './sprite'
 import Timer from './timer'
+import Sound from './sound'
 import Collision from './collision'
 
 type ConstructorProps = {
@@ -21,6 +22,11 @@ export default class Game {
   shop: Sprite
   player: Fighter
   enemy: Fighter
+
+  private backgroundSound = new Sound('./assets/background-sound.wav', {
+    loop: true,
+    volume: 0.3,
+  })
 
   constructor({
     canvas,
@@ -60,6 +66,7 @@ export default class Game {
   start() {
     this.timer.start()
     this.animate()
+    this.backgroundSound.play()
   }
 
   animate() {

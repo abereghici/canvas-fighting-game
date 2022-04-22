@@ -20,7 +20,7 @@ export const createSamuraiMack = (direction: Direction) =>
     }),
     sprites: new FighterSpriteSheets(
       './assets/characters/samuraiMack',
-      3,
+      2,
       direction,
     )
       .add('Idle', {

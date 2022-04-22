@@ -24,7 +24,7 @@ new GameBuilder()
       frameManager: new FrameManager({max: 6, hold: 5}),
     }),
   )
-  .setPlayer(createWizardAlbus('Left'))
-  .setEnemy(createWizardAlatar('Right'))
+  .setPlayer(createSamuraiKenji('Left'))
+  .setEnemy(createSamuraiMack('Right'))
   .build()
   .start()
